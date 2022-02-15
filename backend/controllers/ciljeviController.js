@@ -1,11 +1,12 @@
 const asyncHandler = require('express-async-handler')
-const Cilj = require('../models/ciljeviModel')
+const CiljModel = require('../models/ciljeviModel')
+const UserModel = require('../models/userModel')
 
 //@desc Get Goals
 //@route GET /api/Goals
 //access PRIVATE
 const getCiljeve = asyncHandler(async (req, res) => {
-  const ciljevi = await Cilj.find()
+  const ciljevi = await CiljModel.find({ user: req.user.id })
 
   res.status(200)
   res.json(ciljevi)
@@ -19,8 +20,9 @@ const setCiljeve = asyncHandler(async (req, res) => {
     res.status(400)
     throw new Error('Please add a text field')
   }
-  const cilj = await Cilj.create({
+  const cilj = await CiljModel.create({
     text: req.body.text,
+    user: req.user.id,
   })
   res.status(200).json(cilj)
 })
@@ -28,16 +30,34 @@ const setCiljeve = asyncHandler(async (req, res) => {
 //@route PUT /api/Goals
 //access PRIVATE
 const updateCiljeve = asyncHandler(async (req, res) => {
-  const cilj = await Cilj.findById(req.params.id)
+  const cilj = await CiljModel.findById(req.params.id)
 
   if (!cilj) {
     res.status(400)
     throw new Error('No cilj')
   }
 
-  const updatedGoal = await Cilj.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  })
+  const user = await UserModel.findById(req.user.id)
+
+  //Proveri ima li korisnika
+  if (!user) {
+    res.status(401)
+    throw new Error('User not found')
+  }
+
+  //Samo autor cilja menja cilj
+  if (cilj.user.toString() !== user.id) {
+    res.status(401)
+    throw new Error('Not authorized')
+  }
+
+  const updatedGoal = await CiljModel.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+    }
+  )
 
   res.status(200).json(updatedGoal)
 })
@@ -45,11 +65,24 @@ const updateCiljeve = asyncHandler(async (req, res) => {
 //@route DELETE /api/Goals
 //access PRIVATE
 const deleteCiljeve = asyncHandler(async (req, res) => {
-  const cilj = await Cilj.findById(req.params.id)
+  const cilj = await CiljModel.findById(req.params.id)
 
   if (!cilj) {
     res.status(400)
     throw new Error('No cilj')
+  }
+  const user = await UserModel.findById(req.user.id)
+
+  //Proveri ima li korisnika
+  if (!user) {
+    res.status(401)
+    throw new Error('User not found')
+  }
+
+  //Samo autor cilja menja cilj
+  if (cilj.user.toString() !== user.id) {
+    res.status(401)
+    throw new Error('Not authorized')
   }
   await cilj.remove()
 
