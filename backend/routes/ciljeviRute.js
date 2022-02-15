@@ -7,12 +7,12 @@ const {
   deleteCiljeve,
 } = require('../controllers/ciljeviController')
 
-router.route('/').get(getCiljeve).post(setCiljeve)
-router.route('/').delete(deleteCiljeve).put(updateCiljeve)
+// router.route('/').get(getCiljeve).post(setCiljeve)
+// router.route('/:id').delete(deleteCiljeve).put(updateCiljeve)
 
-// router.get('/', getCiljeve)
-// router.post('/', setCiljeve)
-// router.put('/:id', updateCiljeve)
-// router.delete('/:id', deleteCiljeve)
+router.get('/', getCiljeve)
+router.post('/', setCiljeve)
+router.put('/:id', updateCiljeve)
+router.delete('/:id', deleteCiljeve)
 
 module.exports = router
